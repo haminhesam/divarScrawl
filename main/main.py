@@ -6,6 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import requests
 from bs4 import BeautifulSoup
+from progress.bar import Bar
 
 target_list = ['مراقبتی پوست و مو', 'لوازم آرایشی و زیبایی']
 
@@ -14,8 +15,9 @@ def opener(x):
         r = requests.get(x).text
         r = BeautifulSoup(r, 'html.parser')
         page_type = r.find('a', attrs={"class": "kt-unexpandable-row__action kt-text-truncate"})
-        if (type(page_type) == 'NoneType'):
+        if (type(page_type) != 'NoneType'):
             page_type = page_type.text
+        print(page_type)
         if (page_type in target_list):
             return True
         else:
@@ -68,18 +70,22 @@ for i, element in enumerate(article_list):
     article_links.append(element.get_attribute('href'))
 # You now have the article links in the 'article_links' list
 print(article_links)
-
+# Close the WebDriver when done
+driver.quit()
 new_article_list = []
-for i, element in enumerate(article_links):
-    print()
-    print(i, element)
-    if (opener(element)):
-        new_article_list.append(element)
-        print("found one")
-    else:
-        print("%s failed, trying next" %i)
+with Bar('Loading Pages', max=len(article_links)) as bar:    
+    for i, element in enumerate(article_links):
+        print()
+        print(element)
+        if (opener(element)):
+            new_article_list.append(element)
+            print("found one")
+        else:
+            print("%s failed, trying next" %i)
+        bar.next()
+        print("success: ", len(new_article_list))
+    
     
 
 print("finish", new_article_list)
-# Close the WebDriver when done
-driver.quit()
+
