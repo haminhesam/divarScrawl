@@ -4,6 +4,29 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import requests
+from bs4 import BeautifulSoup
+
+target_list = ['مراقبتی پوست و مو', 'لوازم آرایشی و زیبایی']
+
+def opener(x):
+    try:    
+        r = requests.get(x).text
+        r = BeautifulSoup(r, 'html.parser')
+        page_type = r.find('a', attrs={"class": "kt-unexpandable-row__action kt-text-truncate"})
+        if (type(page_type) == 'NoneType'):
+            page_type = page_type.text
+        if (page_type in target_list):
+            return True
+        else:
+            return False
+    except: 
+        print("http failure")
+
+    
+    
+
+
 
 # Set up the Selenium WebDriver for your preferred browser
 driver = webdriver.Firefox()  # You can use other browsers by changing this line
@@ -18,7 +41,7 @@ def scroll_to_bottom():
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
 page_height = driver.execute_script("return document.body.scrollHeight")
-
+'''
 # Scroll down and wait for more results until there are no more
 while True:
     # Scroll down to the bottom of the page
@@ -36,17 +59,27 @@ while True:
     
     # Update the page height
     page_height = new_page_height
-
+'''
 # Extract article links
 article_links = []
-article_elements = driver.find_elements(By.XPATH, '//a[@class="article-link"]')  # Customize the XPath
-for element in article_elements:
+article_list = driver.find_elements(By.TAG_NAME, 'a')
+for i, element in enumerate(article_list):
+    print(i)
     article_links.append(element.get_attribute('href'))
-    print (element.text)
 # You now have the article links in the 'article_links' list
 print(article_links)
 
-# Once done, you can perform further processing on the extracted links as needed
+new_article_list = []
+for i, element in enumerate(article_links):
+    print()
+    print(i, element)
+    if (opener(element)):
+        new_article_list.append(element)
+        print("found one")
+    else:
+        print("%s failed, trying next" %i)
+    
 
+print("finish", new_article_list)
 # Close the WebDriver when done
 driver.quit()
