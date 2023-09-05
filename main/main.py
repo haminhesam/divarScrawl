@@ -8,15 +8,24 @@ import requests
 from bs4 import BeautifulSoup
 from progress.bar import Bar
 
-target_list = ['مراقبتی پوست و مو', 'لوازم آرایشی و زیبایی']
+target_list = ['مراقبتی پوست و مو', 'لوازم آرایشی و زیبایی', 'پورسانتی/درصدی']
 
 def opener(x):
     try:    
         r = requests.get(x).text
         r = BeautifulSoup(r, 'html.parser')
         page_type = r.find('a', attrs={"class": "kt-unexpandable-row__action kt-text-truncate"})
-        if (type(page_type) != 'NoneType'):
-            page_type = page_type.text
+        page_type2 = r.find('p', attrs={"class": "kt-unexpandable-row__value"})
+        if not (type(page_type) is None and type(page_type2) is None):
+            try:
+                page_type = page_type.text
+            except:
+                print("not in type 1")
+            try:
+                page_type = page_type2.text
+            except:
+                print("not in type 2")
+
         print(page_type)
         if (page_type in target_list):
             return True
@@ -43,14 +52,14 @@ def scroll_to_bottom():
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
 page_height = driver.execute_script("return document.body.scrollHeight")
-'''
+
 # Scroll down and wait for more results until there are no more
 while True:
     # Scroll down to the bottom of the page
     scroll_to_bottom()
     
     # Wait for a few seconds to allow new content to load (customize the sleep time)
-    time.sleep(3)  # Adjust this delay as necessary
+    time.sleep(2)  # Adjust this delay as necessary
     
     # Get the new page height
     new_page_height = driver.execute_script("return document.body.scrollHeight")
@@ -61,12 +70,13 @@ while True:
     
     # Update the page height
     page_height = new_page_height
-'''
+
 # Extract article links
 article_links = []
 article_list = driver.find_elements(By.TAG_NAME, 'a')
 for i, element in enumerate(article_list):
     print(i)
+    print(element.text)
     article_links.append(element.get_attribute('href'))
 # You now have the article links in the 'article_links' list
 print(article_links)
@@ -83,7 +93,7 @@ with Bar('Loading Pages', max=len(article_links)) as bar:
         else:
             print("%s failed, trying next" %i)
         bar.next()
-        print("success: ", len(new_article_list))
+        print("\nsuccess: ", len(new_article_list))
     
     
 
